@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background: linear-gradient(135deg, #1e293b 0%, #112d6e 100%);
+    color: #e2e8f0;
     line-height: 1.6;
     margin: 0;
     padding: 0;
@@ -21,6 +21,11 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 header {
@@ -113,8 +118,23 @@ input, select {
 }
 
 .primary-btn {
-    background-color: var(--primary-color);
+    background: linear-gradient(45deg, #2563eb, #3b82f6);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
     color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(37, 99, 235, 0.3);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
 }
 
 .secondary-btn {
@@ -172,7 +192,10 @@ input, select {
 }
 
 .article-card {
-    background-color: var(--card-background);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s;
     padding: 1.5rem;
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
@@ -206,4 +229,59 @@ input, select {
     border-radius: 0.5rem;
     margin: 1rem 0;
     border: 1px solid #fecaca;
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #2563eb;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+} 
+
+.source-label {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(37, 99, 235, 0.1);
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+}
+
+.source-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+} 
+
+.analysis-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.analysis-highlight {
+    background: rgba(37, 99, 235, 0.1);
+    border-left: 4px solid #2563eb;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 8px 8px 0;
 } 
