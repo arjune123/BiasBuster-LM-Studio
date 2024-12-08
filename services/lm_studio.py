@@ -2,8 +2,9 @@ import requests
 import config
 
 def summarize_articles(articles):
-    prompt = """Analyze the following news articles and provide a neutral, balanced summary that includes all perspectives. 
-    Focus on the facts and highlight any differences in how the story is presented by different sources.
+    prompt = """There are multiple news articles about similar topic.
+    Analyze them and provide a neutral, balanced summary that includes all perspectives. Focus on the facts.
+    Provide a critical summary of the articles.It can be sufficiently long but not very long.
 
     Articles:
     """ + "\n\n".join([f"Source: {article['source']}\nTitle: {article['title']}\nContent: {article['content']}" 
