@@ -6,58 +6,219 @@
 </head>
 <body>
     <h1>Bias-Buster</h1>
-    <form id="category-form" method="POST" action="/fetch">
-        <input type="text" name="category" placeholder="Enter category" required>
-        <button type="submit">Fetch News</button>
+    
+    <!-- Add tabs for different modes -->
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="category">Search by Category</button>
+        <button class="mode-btn" data-mode="urls">Compare URLs</button>
+    </div>
+
+    <!-- Category search form -->
+    <form id="category-form" class="input-form" method="POST" action="/fetch">
+        <div class="category-inputs">
+            <input type="text" name="category" placeholder="Enter category (e.g., technology, politics)" required>
+            
+            <div class="filter-options">
+                <select name="timeframe" id="timeframe">
+                    <option value="1">Last 24 hours</option>
+                    <option value="7" selected>Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="custom">Custom date range</option>
+                </select>
+                
+                <div id="custom-dates" style="display: none;">
+                    <input type="date" name="start_date" id="start_date">
+                    <input type="date" name="end_date" id="end_date">
+                </div>
+                
+                <select name="article_count" id="article_count">
+                    <option value="3">3 articles</option>
+                    <option value="4">4 articles</option>
+                    <option value="5">5 articles</option>
+                </select>
+            </div>
+        </div>
+        <div class="button-group">
+            <button type="submit">Fetch News</button>
+            <button type="button" id="refresh-btn">Refresh</button>
+        </div>
+    </form>
+    
+    <!-- URL input form (initially hidden) -->
+    <form id="url-form" class="input-form" style="display: none;" method="POST" action="/fetch-urls">
+        <div class="url-inputs">
+            <input type="url" name="url1" placeholder="Enter first article URL" required>
+            <input type="url" name="url2" placeholder="Enter second article URL" required>
+            <input type="url" name="url3" placeholder="Enter third article URL">
+        </div>
+        <button type="submit">Analyze Articles</button>
     </form>
     
     <div id="results">
         <div id="articles-container"></div>
-        <button id="analyze-btn" style="display: none;">Analyze Articles</button>
-        <div id="analysis-results"></div>
+        <button id="summarize-btn" style="display: none;">Generate News Digest</button>
+        <div id="digest-results"></div>
     </div>
 
     <script>
-        const form = document.getElementById('category-form');
+        // Mode switching logic
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const categoryForm = document.getElementById('category-form');
+        const urlForm = document.getElementById('url-form');
         let fetchedArticles = [];
 
-        form.onsubmit = async (e) => {
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (btn.dataset.mode === 'category') {
+                    categoryForm.style.display = 'block';
+                    urlForm.style.display = 'none';
+                } else {
+                    categoryForm.style.display = 'none';
+                    urlForm.style.display = 'block';
+                }
+                
+                // Clear previous results
+                document.getElementById('articles-container').innerHTML = '';
+                document.getElementById('digest-results').innerHTML = '';
+                document.getElementById('summarize-btn').style.display = 'none';
+            });
+        });
+
+        // Category form handler
+        const categoryFormHandler = document.getElementById('category-form');
+        categoryFormHandler.onsubmit = async (e) => {
             e.preventDefault();
-            const category = new FormData(form).get('category');
+            const formData = new FormData(categoryFormHandler);
+            const data = {
+                category: formData.get('category'),
+                timeframe: formData.get('timeframe'),
+                article_count: formData.get('article_count')
+            };
+
+            // Add custom dates if selected
+            if (data.timeframe === 'custom') {
+                data.start_date = formData.get('start_date');
+                data.end_date = formData.get('end_date');
+            }
+
             const res = await fetch('/fetch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category }),
+                body: JSON.stringify(data),
             });
             fetchedArticles = await res.json();
             displayArticles(fetchedArticles);
         };
 
+        // URL form handler
+        const urlFormHandler = document.getElementById('url-form');
+        urlFormHandler.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(urlFormHandler);
+            const urls = {
+                urls: [
+                    formData.get('url1'),
+                    formData.get('url2'),
+                    formData.get('url3')
+                ].filter(url => url) // Remove empty URLs
+            };
+            
+            try {
+                const res = await fetch('/fetch-urls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(urls),
+                });
+                fetchedArticles = await res.json();
+                displayArticles(fetchedArticles);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching articles. Please check your URLs and try again.');
+            }
+        };
+
+        // Display functions
         function displayArticles(articles) {
             const container = document.getElementById('articles-container');
             container.innerHTML = articles.map(article => `
                 <div class="article-card">
                     <h3>${article.source}</h3>
                     <h4>${article.title}</h4>
+                    ${article.publishedAt ? 
+                        `<p class="article-date">Published: ${new Date(article.publishedAt).toLocaleDateString()}</p>` 
+                        : ''}
                     <p>${article.content}</p>
+                    ${article.url ? `<a href="${article.url}" target="_blank">Read more</a>` : ''}
                 </div>
             `).join('');
             
-            document.getElementById('analyze-btn').style.display = 'block';
+            document.getElementById('summarize-btn').style.display = 'block';
         }
 
-        document.getElementById('analyze-btn').onclick = async () => {
-            const res = await fetch('/analyze', {
+        // Handle timeframe selection
+        document.getElementById('timeframe').onchange = function() {
+            const customDates = document.getElementById('custom-dates');
+            customDates.style.display = this.value === 'custom' ? 'block' : 'none';
+        };
+
+        // Handle refresh button
+        document.getElementById('refresh-btn').onclick = async function() {
+            const formData = new FormData(categoryFormHandler);
+            const data = {
+                category: formData.get('category'),
+                timeframe: formData.get('timeframe'),
+                article_count: formData.get('article_count')
+            };
+
+            // Add custom dates if selected
+            if (data.timeframe === 'custom') {
+                data.start_date = formData.get('start_date');
+                data.end_date = formData.get('end_date');
+            }
+
+            const res = await fetch('/fetch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            fetchedArticles = await res.json();
+            displayArticles(fetchedArticles);
+        };
+
+        // Handle summarize/analyze button
+        document.getElementById('summarize-btn').onclick = async () => {
+            const activeMode = document.querySelector('.mode-btn.active').dataset.mode;
+            let endpoint = activeMode === 'category' ? '/digest' : '/analyze';
+            
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ articles: fetchedArticles }),
             });
-            const analysis = await res.json();
-            displayAnalysis(analysis);
+            const result = await res.json();
+            
+            if (activeMode === 'category') {
+                displayDigest(result.digest);
+            } else {
+                displayAnalysis(result);
+            }
         };
 
+        function displayDigest(digest) {
+            const container = document.getElementById('digest-results');
+            container.innerHTML = `
+                <div class="digest-card">
+                    <h2>News Digest</h2>
+                    <div class="digest-content">${digest}</div>
+                </div>
+            `;
+        }
+
         function displayAnalysis(analysis) {
-            const container = document.getElementById('analysis-results');
+            const container = document.getElementById('digest-results');
             container.innerHTML = `
                 <div class="analysis-section">
                     <h2>Sentiment Analysis</h2>
@@ -66,6 +227,7 @@
                             <h3>${sentiment.source}</h3>
                             <p>Sentiment: ${sentiment.sentiment}</p>
                             <p>Score: ${sentiment.score}</p>
+                            ${sentiment.error_message ? `<p class="error">Error: ${sentiment.error_message}</p>` : ''}
                         </div>
                     `).join('')}
                 </div>

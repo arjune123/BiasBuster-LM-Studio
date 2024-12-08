@@ -41,4 +41,83 @@ button:hover {
 
 #analyze-btn {
     margin: 20px 0;
+}
+
+.mode-selector {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.mode-btn {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+}
+
+.mode-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.input-form {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.url-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.url-inputs input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.category-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-options select, .filter-options input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.digest-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.key-points {
+    margin-top: 15px;
+    padding-left: 20px;
+}
+
+.key-points li {
+    margin-bottom: 8px;
 } 

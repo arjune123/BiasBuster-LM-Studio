@@ -2,20 +2,23 @@ import requests
 from datetime import datetime, timedelta
 import config
 
-def fetch_articles(category):
+def fetch_articles(category, timeframe=7, start_date=None, end_date=None, article_count=3):
     base_url = "https://newsapi.org/v2/everything"
     
-    # Get articles from the last 7 days
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=7)
+    # Calculate dates
+    end_date = end_date or datetime.now()
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    else:
+        start_date = end_date - timedelta(days=int(timeframe))
     
     params = {
         'q': category,
         'from': start_date.strftime('%Y-%m-%d'),
         'to': end_date.strftime('%Y-%m-%d'),
         'language': 'en',
-        'sortBy': 'relevancy',
-        'pageSize': 10,
+        'sortBy': 'publishedAt',  # Changed to get latest articles
+        'pageSize': int(article_count),
         'apiKey': config.NEWS_API_KEY
     }
     
@@ -23,27 +26,15 @@ def fetch_articles(category):
         response = requests.get(base_url, params=params)
         response.raise_for_status()
         
-        all_articles = response.json()['articles']
-        valid_articles = []
+        articles = response.json()['articles']
+        return [{
+            'source': article['source']['name'],
+            'title': article['title'],
+            'content': article.get('content') or article.get('description'),
+            'url': article['url'],
+            'publishedAt': article['publishedAt']
+        } for article in articles if article.get('content') or article.get('description')]
         
-        for article in all_articles:
-            content = article.get('content') or article.get('description')
-            if (content and 
-                content.lower() != 'removed' and 
-                '[removed]' not in content.lower() and
-                len(content.strip()) > 50):
-                valid_articles.append({
-                    'source': article['source']['name'],
-                    'title': article['title'],
-                    'content': content,
-                    'url': article['url']
-                })
-            
-            if len(valid_articles) >= 3:
-                break
-                
-        return valid_articles[:3]
-        
-    except requests.RequestException as e:
+    except Exception as e:
         print(f"Error fetching news: {e}")
         return []
