@@ -10,7 +10,7 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #1e293b 0%, #112d6e 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
     color: #e2e8f0;
     line-height: 1.6;
     margin: 0;
@@ -22,10 +22,10 @@ body {
     margin: 0 auto;
     padding: 2rem;
     backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.7);
     border-radius: 20px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 header {
@@ -34,15 +34,16 @@ header {
 }
 
 h1 {
-    color: var(--primary-color);
+    color: #3b82f6;
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
 }
 
 .subtitle {
-    color: var(--text-color);
-    opacity: 0.8;
+    color: #e2e8f0;
+    opacity: 1;
     font-size: 1.1rem;
+    font-weight: 500;
 }
 
 .mode-selector {
@@ -59,15 +60,17 @@ h1 {
     padding: 1rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
-    background-color: var(--card-background);
+    background-color: rgba(15, 23, 42, 0.8);
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;
     font-weight: 500;
+    color: #e2e8f0;
 }
 
 .mode-btn.active {
-    background-color: var(--primary-color);
+    background: linear-gradient(45deg, #2563eb, #3b82f6);
+    border: none;
     color: white;
 }
 
@@ -76,11 +79,12 @@ h1 {
 }
 
 .input-form {
-    background-color: var(--card-background);
+    background-color: rgba(30, 41, 59, 0.8);
     padding: 2rem;
     border-radius: 1rem;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-group {
@@ -91,10 +95,16 @@ h1 {
 
 input, select {
     padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
     font-size: 1rem;
     min-width: 150px;
+    background: rgba(15, 23, 42, 0.8);
+    color: #f8fafc;
+}
+
+input::placeholder {
+    color: #94a3b8;
 }
 
 .url-inputs {
@@ -158,27 +168,28 @@ input, select {
 }
 
 /* Markdown styling */
+.markdown-content {
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
 .markdown-content h2 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    color: #1e40af;
+    font-weight: 600;
 }
 
 .markdown-content h3 {
-    color: var(--text-color);
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    color: #2563eb;
+    font-weight: 600;
 }
 
-.markdown-content ul {
-    padding-left: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
+.markdown-content p, 
+.markdown-content ul, 
 .markdown-content li {
-    margin-bottom: 0.5rem;
+    color: #1e293b;
+    font-weight: 500;
 }
 
 .articles-section {
@@ -192,14 +203,15 @@ input, select {
 }
 
 .article-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.8);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.2s;
     padding: 1.5rem;
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #f8fafc;
 }
 
 .article-card h3 {
@@ -212,13 +224,14 @@ input, select {
 }
 
 .article-card a {
-    color: var(--primary-color);
+    color: #60a5fa;
     text-decoration: none;
     display: inline-block;
     margin-top: 1rem;
 }
 
 .article-card a:hover {
+    color: #93c5fd;
     text-decoration: underline;
 }
 
@@ -272,16 +285,39 @@ input, select {
 } 
 
 .analysis-section {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.9);
     border-radius: 16px;
     padding: 2rem;
     margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #f8fafc;
 }
 
 .analysis-highlight {
     background: rgba(37, 99, 235, 0.1);
-    border-left: 4px solid #2563eb;
+    border-left: 4px solid #3b82f6;
     padding: 1rem;
     margin: 1rem 0;
     border-radius: 0 8px 8px 0;
+    color: #f8fafc;
+} 
+
+.analysis-section h2 {
+    color: #60a5fa;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+} 
+
+/* Keep the analysis section styling separate */
+.analysis-section .markdown-content {
+    background: transparent;
+    color: #f8fafc;
+    padding: 0;
+}
+
+.analysis-section .markdown-content p,
+.analysis-section .markdown-content ul,
+.analysis-section .markdown-content li {
+    color: #f8fafc;
 } 

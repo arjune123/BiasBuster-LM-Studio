@@ -51,10 +51,8 @@ def fetch_from_url():
 @app.route('/analyze', methods=['POST'])
 def analyze_news():
     articles = request.json['articles']
-    print("Received articles for analysis:", articles)  # Debug log
     analysis = analyze_sentiment(articles)
     summary = summarize_articles(articles)
-    print("Generated summary:", summary)  # Debug log
     return jsonify({'analysis': analysis, 'summary': summary})
 
 @app.route('/digest', methods=['POST'])
