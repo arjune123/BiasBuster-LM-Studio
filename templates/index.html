@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Bias-Buster</title>
+</head>
+<body>
+    <h1>Bias-Buster</h1>
+    <form id="category-form">
+        <input type="text" name="category" placeholder="Enter category">
+        <button type="submit">Fetch News</button>
+    </form>
+    <div id="results"></div>
+</body>
+<script>
+    const form = document.getElementById('category-form');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const category = new FormData(form).get('category');
+        const res = await fetch('/fetch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ category }),
+        });
+        const articles = await res.json();
+        console.log(articles);
+    };
+</script>
+</html>
