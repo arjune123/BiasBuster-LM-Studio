@@ -207,26 +207,30 @@
                     `).join('')}
                 </div>
                 <div class="action-button-container">
-                    <button class="primary-btn" id="${isCompareMode ? 'analyze-btn' : 'bottom-digest-btn'}">
-                        ${isCompareMode ? 'Analyze Articles' : 'Generate Digest'}
-                    </button>
+                    <div class="button-with-spinner">
+                        <button class="primary-btn" id="${isCompareMode ? 'analyze-btn' : 'bottom-digest-btn'}">
+                            ${isCompareMode ? 'Analyze Articles' : 'Generate Digest'}
+                        </button>
+                        <div class="spinner-small"></div>
+                    </div>
                 </div>
             `;
 
             // Add event listeners to the newly created buttons
             if (isCompareMode) {
-                document.getElementById('analyze-btn').onclick = async () => {
+                const analyzeBtn = document.getElementById('analyze-btn');
+                analyzeBtn.parentElement.classList.remove('loading');
+                
+                analyzeBtn.onclick = async () => {
                     try {
-                        console.log('Articles being sent for analysis:', window.fetchedArticles); // Debug log
+                        analyzeBtn.parentElement.classList.add('loading');
                         const res = await fetch('/analyze', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ articles: window.fetchedArticles })
                         });
                         
-                        console.log('Analysis response status:', res.status); // Debug log
                         const result = await res.json();
-                        console.log('Analysis result:', result); // Debug log
                         
                         if (result.error) {
                             throw new Error(result.error);
@@ -235,11 +239,17 @@
                     } catch (error) {
                         console.error('Error:', error);
                         alert('Error analyzing articles. Please try again.');
+                    } finally {
+                        analyzeBtn.parentElement.classList.remove('loading');
                     }
                 };
             } else {
-                document.getElementById('bottom-digest-btn').onclick = async () => {
+                const digestBtn = document.getElementById('bottom-digest-btn');
+                digestBtn.parentElement.classList.remove('loading');
+                
+                digestBtn.onclick = async () => {
                     try {
+                        digestBtn.parentElement.classList.add('loading');
                         const res = await fetch('/digest', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -253,6 +263,8 @@
                     } catch (error) {
                         console.error('Error:', error);
                         alert('Error generating digest. Please try again.');
+                    } finally {
+                        digestBtn.parentElement.classList.remove('loading');
                     }
                 };
             }
