@@ -1,29 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/style.css">
     <title>Bias-Buster</title>
 </head>
 <body>
     <h1>Bias-Buster</h1>
-    <form id="category-form">
-        <input type="text" name="category" placeholder="Enter category">
+    <form id="category-form" method="POST" action="/fetch">
+        <input type="text" name="category" placeholder="Enter category" required>
         <button type="submit">Fetch News</button>
     </form>
-    <div id="results"></div>
+    
+    <div id="results">
+        <div id="articles-container"></div>
+        <button id="analyze-btn" style="display: none;">Analyze Articles</button>
+        <div id="analysis-results"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('category-form');
+        let fetchedArticles = [];
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const category = new FormData(form).get('category');
+            const res = await fetch('/fetch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category }),
+            });
+            fetchedArticles = await res.json();
+            displayArticles(fetchedArticles);
+        };
+
+        function displayArticles(articles) {
+            const container = document.getElementById('articles-container');
+            container.innerHTML = articles.map(article => `
+                <div class="article-card">
+                    <h3>${article.source}</h3>
+                    <h4>${article.title}</h4>
+                    <p>${article.content}</p>
+                </div>
+            `).join('');
+            
+            document.getElementById('analyze-btn').style.display = 'block';
+        }
+
+        document.getElementById('analyze-btn').onclick = async () => {
+            const res = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ articles: fetchedArticles }),
+            });
+            const analysis = await res.json();
+            displayAnalysis(analysis);
+        };
+
+        function displayAnalysis(analysis) {
+            const container = document.getElementById('analysis-results');
+            container.innerHTML = `
+                <div class="analysis-section">
+                    <h2>Sentiment Analysis</h2>
+                    ${analysis.analysis.map(sentiment => `
+                        <div class="sentiment-card">
+                            <h3>${sentiment.source}</h3>
+                            <p>Sentiment: ${sentiment.sentiment}</p>
+                            <p>Score: ${sentiment.score}</p>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="summary-section">
+                    <h2>Neutral Summary</h2>
+                    <p>${analysis.summary}</p>
+                </div>
+            `;
+        }
+    </script>
 </body>
-<script>
-    const form = document.getElementById('category-form');
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const category = new FormData(form).get('category');
-        const res = await fetch('/fetch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category }),
-        });
-        const articles = await res.json();
-        console.log(articles);
-    };
-</script>
 </html>

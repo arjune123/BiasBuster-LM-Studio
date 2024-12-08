@@ -11,7 +11,8 @@ def index():
 
 @app.route('/fetch', methods=['POST'])
 def fetch_news():
-    category = request.form['category']
+    data = request.get_json()
+    category = data['category']
     articles = fetch_articles(category)
     return jsonify(articles)
 

@@ -1,0 +1,5 @@
+# API Keys
+NEWS_API_KEY = "9398b58337174c2087673c9834660875"
+
+# LM Studio Configuration
+LM_STUDIO_API_URL = "http://127.0.0.1:1234"
