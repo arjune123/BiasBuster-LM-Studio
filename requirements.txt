@@ -3,3 +3,4 @@ requests
 transformers
 beautifulsoup4
 nltk
+markdown

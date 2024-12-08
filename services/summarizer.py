@@ -87,3 +87,9 @@ Focus only on the actual content provided."""
             return "Failed to generate digest. Please try again."
     except Exception as e:
         return f"Error generating digest: {str(e)}" 
+
+def format_digest_content(content):
+    # Ensure consistent markdown formatting
+    content = content.replace('**', '##')  # Convert bold to h2 headers
+    content = content.replace('Key points:', '### Key points:')  # Make subsections h3
+    return content 

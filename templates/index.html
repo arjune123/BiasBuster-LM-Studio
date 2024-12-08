@@ -1,242 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Insight Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
-    <title>Bias-Buster</title>
 </head>
 <body>
-    <h1>Bias-Buster</h1>
-    
-    <!-- Add tabs for different modes -->
-    <div class="mode-selector">
-        <button class="mode-btn active" data-mode="category">Search by Category</button>
-        <button class="mode-btn" data-mode="urls">Compare URLs</button>
-    </div>
+    <div class="container">
+        <header>
+            <h1>BiasBuster</h1>
+            <p class="subtitle">Aggregate, Compare, Understand</p>
+        </header>
 
-    <!-- Category search form -->
-    <form id="category-form" class="input-form" method="POST" action="/fetch">
-        <div class="category-inputs">
-            <input type="text" name="category" placeholder="Enter category (e.g., technology, politics)" required>
-            
-            <div class="filter-options">
-                <select name="timeframe" id="timeframe">
-                    <option value="1">Last 24 hours</option>
-                    <option value="7" selected>Last 7 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="custom">Custom date range</option>
-                </select>
-                
-                <div id="custom-dates" style="display: none;">
-                    <input type="date" name="start_date" id="start_date">
-                    <input type="date" name="end_date" id="end_date">
-                </div>
-                
-                <select name="article_count" id="article_count">
-                    <option value="3">3 articles</option>
-                    <option value="4">4 articles</option>
-                    <option value="5">5 articles</option>
-                </select>
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="urls">
+                <span class="icon">🔍</span>
+                Compare Articles
+            </button>
+            <button class="mode-btn" data-mode="category">
+                <span class="icon">📰</span>
+                News Digest
+            </button>
+        </div>
+
+        <!-- URL input form -->
+        <form id="url-form" class="input-form">
+            <div class="url-inputs">
+                <input type="url" name="url1" placeholder="Enter first article URL" required>
+                <input type="url" name="url2" placeholder="Enter second article URL" required>
+                <input type="url" name="url3" placeholder="Enter third article URL">
             </div>
+            <button type="button" class="primary-btn" onclick="handleUrlSubmit()">Fetch Articles</button>
+        </form>
+
+        <!-- Category search form -->
+        <form id="category-form" class="input-form" style="display: none;">
+            <div class="form-group">
+                <input type="text" name="category" placeholder="Enter news category (e.g., technology, politics)" required>
+                <div class="filter-options">
+                    <select name="article_count" id="article_count">
+                        <option value="3">3 articles</option>
+                        <option value="4">4 articles</option>
+                        <option value="5">5 articles</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="primary-btn" id="fetch-btn">Fetch News</button>
+                <button type="button" class="secondary-btn" id="refresh-btn">Refresh</button>
+            </div>
+        </form>
+
+        <div id="results">
+            <div id="articles-container"></div>
+            <div id="analysis-results" class="analysis-container"></div>
         </div>
-        <div class="button-group">
-            <button type="submit">Fetch News</button>
-            <button type="button" id="refresh-btn">Refresh</button>
-        </div>
-    </form>
-    
-    <!-- URL input form (initially hidden) -->
-    <form id="url-form" class="input-form" style="display: none;" method="POST" action="/fetch-urls">
-        <div class="url-inputs">
-            <input type="url" name="url1" placeholder="Enter first article URL" required>
-            <input type="url" name="url2" placeholder="Enter second article URL" required>
-            <input type="url" name="url3" placeholder="Enter third article URL">
-        </div>
-        <button type="submit">Analyze Articles</button>
-    </form>
-    
-    <div id="results">
-        <div id="articles-container"></div>
-        <button id="summarize-btn" style="display: none;">Generate News Digest</button>
-        <div id="digest-results"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/3.0.7/marked.min.js"></script>
     <script>
-        // Mode switching logic
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        const categoryForm = document.getElementById('category-form');
-        const urlForm = document.getElementById('url-form');
         let fetchedArticles = [];
-
-        modeBtns.forEach(btn => {
+        
+        // Mode switching
+        document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                modeBtns.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
                 if (btn.dataset.mode === 'category') {
-                    categoryForm.style.display = 'block';
-                    urlForm.style.display = 'none';
+                    document.getElementById('category-form').style.display = 'block';
+                    document.getElementById('url-form').style.display = 'none';
                 } else {
-                    categoryForm.style.display = 'none';
-                    urlForm.style.display = 'block';
+                    document.getElementById('category-form').style.display = 'none';
+                    document.getElementById('url-form').style.display = 'block';
                 }
                 
-                // Clear previous results
                 document.getElementById('articles-container').innerHTML = '';
-                document.getElementById('digest-results').innerHTML = '';
-                document.getElementById('summarize-btn').style.display = 'none';
+                document.getElementById('analysis-results').innerHTML = '';
             });
         });
 
         // Category form handler
-        const categoryFormHandler = document.getElementById('category-form');
-        categoryFormHandler.onsubmit = async (e) => {
+        const categoryForm = document.getElementById('category-form');
+        categoryForm.onsubmit = async (e) => {
             e.preventDefault();
-            const formData = new FormData(categoryFormHandler);
+            const formData = new FormData(categoryForm);
             const data = {
                 category: formData.get('category'),
-                timeframe: formData.get('timeframe'),
                 article_count: formData.get('article_count')
             };
 
-            // Add custom dates if selected
-            if (data.timeframe === 'custom') {
-                data.start_date = formData.get('start_date');
-                data.end_date = formData.get('end_date');
+            try {
+                const res = await fetch('/fetch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
+                fetchedArticles = await res.json();
+                if (fetchedArticles.length > 0) {
+                    displayArticles(fetchedArticles);
+                } else {
+                    alert('No articles found for this category. Please try another.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Only show error if it's not a successful response
+                if (!fetchedArticles || fetchedArticles.length === 0) {
+                    alert('Error fetching articles. Please try again.');
+                }
             }
-
-            const res = await fetch('/fetch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-            fetchedArticles = await res.json();
-            displayArticles(fetchedArticles);
         };
 
-        // URL form handler
-        const urlFormHandler = document.getElementById('url-form');
-        urlFormHandler.onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(urlFormHandler);
+        // Refresh button handler
+        document.getElementById('refresh-btn').onclick = async () => {
+            if (categoryForm.category.value) {
+                categoryForm.dispatchEvent(new Event('submit'));
+            }
+        };
+
+        // Digest button handler
+        document.getElementById('digest-btn').onclick = async () => {
+            if (fetchedArticles.length === 0) {
+                alert('Please fetch articles first');
+                return;
+            }
+
+            try {
+                const res = await fetch('/digest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ articles: fetchedArticles })
+                });
+                const result = await res.json();
+                displayDigest(result.digest);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating digest. Please try again.');
+            }
+        };
+
+        // URL form handler - Make sure this is OUTSIDE any other function
+        const urlForm = document.getElementById('url-form');
+        const fetchUrlsBtn = document.getElementById('fetch-urls-btn');
+        
+        fetchUrlsBtn.addEventListener('click', async () => {
+            console.log('Fetch URLs button clicked');
+            const formData = new FormData(urlForm);
             const urls = {
                 urls: [
                     formData.get('url1'),
                     formData.get('url2'),
                     formData.get('url3')
-                ].filter(url => url) // Remove empty URLs
+                ].filter(url => url)
             };
+            
+            console.log('Sending URLs:', urls);
             
             try {
                 const res = await fetch('/fetch-urls', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(urls),
+                    body: JSON.stringify(urls)
                 });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 fetchedArticles = await res.json();
-                displayArticles(fetchedArticles);
+                if (fetchedArticles.length > 0) {
+                    displayArticles(fetchedArticles, true);
+                } else {
+                    alert('No articles could be fetched from the provided URLs. Please check the URLs and try again.');
+                }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error fetching articles. Please check your URLs and try again.');
+                alert('Error fetching articles. Please check the URLs and try again.');
             }
-        };
+        });
 
-        // Display functions
-        function displayArticles(articles) {
+        function displayArticles(articles, isUrlMode = false) {
             const container = document.getElementById('articles-container');
-            container.innerHTML = articles.map(article => `
-                <div class="article-card">
-                    <h3>${article.source}</h3>
-                    <h4>${article.title}</h4>
-                    ${article.publishedAt ? 
-                        `<p class="article-date">Published: ${new Date(article.publishedAt).toLocaleDateString()}</p>` 
-                        : ''}
-                    <p>${article.content}</p>
-                    ${article.url ? `<a href="${article.url}" target="_blank">Read more</a>` : ''}
-                </div>
-            `).join('');
+            const isCompareMode = isUrlMode || document.querySelector('.mode-btn.active').dataset.mode === 'urls';
             
-            document.getElementById('summarize-btn').style.display = 'block';
-        }
-
-        // Handle timeframe selection
-        document.getElementById('timeframe').onchange = function() {
-            const customDates = document.getElementById('custom-dates');
-            customDates.style.display = this.value === 'custom' ? 'block' : 'none';
-        };
-
-        // Handle refresh button
-        document.getElementById('refresh-btn').onclick = async function() {
-            const formData = new FormData(categoryFormHandler);
-            const data = {
-                category: formData.get('category'),
-                timeframe: formData.get('timeframe'),
-                article_count: formData.get('article_count')
-            };
-
-            // Add custom dates if selected
-            if (data.timeframe === 'custom') {
-                data.start_date = formData.get('start_date');
-                data.end_date = formData.get('end_date');
-            }
-
-            const res = await fetch('/fetch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-            fetchedArticles = await res.json();
-            displayArticles(fetchedArticles);
-        };
-
-        // Handle summarize/analyze button
-        document.getElementById('summarize-btn').onclick = async () => {
-            const activeMode = document.querySelector('.mode-btn.active').dataset.mode;
-            let endpoint = activeMode === 'category' ? '/digest' : '/analyze';
-            
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ articles: fetchedArticles }),
-            });
-            const result = await res.json();
-            
-            if (activeMode === 'category') {
-                displayDigest(result.digest);
-            } else {
-                displayAnalysis(result);
-            }
-        };
-
-        function displayDigest(digest) {
-            const container = document.getElementById('digest-results');
             container.innerHTML = `
-                <div class="digest-card">
-                    <h2>News Digest</h2>
-                    <div class="digest-content">${digest}</div>
-                </div>
-            `;
-        }
-
-        function displayAnalysis(analysis) {
-            const container = document.getElementById('digest-results');
-            container.innerHTML = `
-                <div class="analysis-section">
-                    <h2>Sentiment Analysis</h2>
-                    ${analysis.analysis.map(sentiment => `
-                        <div class="sentiment-card">
-                            <h3>${sentiment.source}</h3>
-                            <p>Sentiment: ${sentiment.sentiment}</p>
-                            <p>Score: ${sentiment.score}</p>
-                            ${sentiment.error_message ? `<p class="error">Error: ${sentiment.error_message}</p>` : ''}
+                <div class="articles-section">
+                    ${articles.map(article => `
+                        <div class="article-card">
+                            <h3>${article.source}</h3>
+                            <h4>${article.title}</h4>
+                            <p>${article.content}</p>
+                            ${article.url ? `<a href="${article.url}" target="_blank">Read more</a>` : ''}
                         </div>
                     `).join('')}
                 </div>
-                <div class="summary-section">
-                    <h2>Neutral Summary</h2>
-                    <p>${analysis.summary}</p>
+                <div class="action-button-container">
+                    <button class="primary-btn" id="${isCompareMode ? 'analyze-btn' : 'bottom-digest-btn'}">
+                        ${isCompareMode ? 'Analyze Articles' : 'Generate Digest'}
+                    </button>
                 </div>
             `;
+
+            // Add event listeners to the newly created buttons
+            if (isCompareMode) {
+                document.getElementById('analyze-btn').onclick = async () => {
+                    try {
+                        console.log('Articles being sent for analysis:', window.fetchedArticles); // Debug log
+                        const res = await fetch('/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ articles: window.fetchedArticles })
+                        });
+                        
+                        console.log('Analysis response status:', res.status); // Debug log
+                        const result = await res.json();
+                        console.log('Analysis result:', result); // Debug log
+                        
+                        if (result.error) {
+                            throw new Error(result.error);
+                        }
+                        displayAnalysis(result);
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error analyzing articles. Please try again.');
+                    }
+                };
+            } else {
+                document.getElementById('bottom-digest-btn').onclick = async () => {
+                    try {
+                        const res = await fetch('/digest', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ articles: fetchedArticles })
+                        });
+                        const result = await res.json();
+                        if (result.error) {
+                            throw new Error(result.error);
+                        }
+                        displayDigest(result.digest);
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error generating digest. Please try again.');
+                    }
+                };
+            }
         }
+
+        function displayDigest(digest) {
+            const container = document.getElementById('analysis-results');
+            const formattedContent = marked.parse(digest);
+            container.innerHTML = `
+                <div class="markdown-content">
+                    ${formattedContent}
+                </div>
+            `;
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayAnalysis(result) {
+            const container = document.getElementById('analysis-results');
+            if (result.error) {
+                container.innerHTML = `<div class="error-message">${result.error}</div>`;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="analysis-section">
+                    <h2>Analysis Results</h2>
+                    <div class="markdown-content">
+                        ${marked.parse(result.summary)}
+                    </div>
+                </div>
+            `;
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Add this new function
+        async function handleUrlSubmit() {
+            console.log('handleUrlSubmit called');  // Debug log
+            const urlForm = document.getElementById('url-form');
+            const formData = new FormData(urlForm);
+            
+            const urls = {
+                urls: [
+                    formData.get('url1'),
+                    formData.get('url2'),
+                    formData.get('url3')
+                ].filter(url => url)
+            };
+            
+            console.log('URLs to send:', urls);  // Debug log
+            
+            try {
+                const res = await fetch('/fetch-urls', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(urls)
+                });
+                
+                console.log('Response status:', res.status);  // Debug log
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
+                // Store the fetched articles in the global variable
+                window.fetchedArticles = await res.json();
+                console.log('Fetched articles:', window.fetchedArticles);  // Debug log
+                
+                if (window.fetchedArticles.length > 0) {
+                    displayArticles(window.fetchedArticles, true);
+                } else {
+                    alert('No articles could be fetched from the provided URLs. Please check the URLs and try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching articles. Please check the URLs and try again.');
+            }
+        }
+
+        // Make sure fetchedArticles is defined in the global scope
+        window.fetchedArticles = [];
     </script>
 </body>
 </html>
